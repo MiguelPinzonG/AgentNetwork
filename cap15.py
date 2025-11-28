@@ -794,7 +794,7 @@ def escenario_1() -> Tuple[Red, str, str, List[List[Tuple[str, str]]], FuncionUt
     funcion_utilidad = FuncionUtilidad(alpha, beta, gamma)
 
     # Costo de sondeo (por ejemplo, equivalente a 15 unidades de utilidad)
-    costo_sondeo = 15.0
+    costo_sondeo = 1.0
 
     return red, origen, destino, rutas, funcion_utilidad, costo_sondeo
 
@@ -816,7 +816,7 @@ def escenario_2() -> Tuple[Red, str, str, List[List[Tuple[str, str]]], FuncionUt
     beta = 200.0
     gamma = 5.0
     funcion_utilidad = FuncionUtilidad(alpha, beta, gamma)
-    costo_sondeo = 15.0
+    costo_sondeo = 1.0
 
     return red, origen, destino, rutas, funcion_utilidad, costo_sondeo
 
@@ -839,14 +839,10 @@ def escenario_3() -> Tuple[Red, str, str, List[List[Tuple[str, str]]], FuncionUt
     beta = 200.0
     gamma = 5.0
     funcion_utilidad = FuncionUtilidad(alpha, beta, gamma)
-    costo_sondeo = 15.0
+    costo_sondeo = 1.0
 
     return red, origen, destino, rutas, funcion_utilidad, costo_sondeo
 
-
-# ----------------------------------------------------------------------
-# 6. Programa principal de prueba
-# ----------------------------------------------------------------------
 
 # ----------------------------------------------------------------------
 # 6. Funciones de visualización y análisis
@@ -877,9 +873,13 @@ def crear_visualizaciones(
     
     # 1. Distribución de Utilidad
     ax = axes[0, 0]
-    for idx, (pol, color) in enumerate(zip(politicas, PLOT_COLORS)):
-        datos = resultados_dict[pol]["datos_completos"]["utilidades"]
-        ax.hist(datos, bins=30, alpha=0.6, label=pol, color=color, edgecolor='black')
+    # Recopilar todos los datos primero para pasarlos juntos a hist
+    # Esto hace que matplotlib coloque las barras lado a lado en lugar de solaparlas
+    datos_todos = [resultados_dict[pol]["datos_completos"]["utilidades"] for pol in politicas]
+    
+    ax.hist(datos_todos, bins=20, label=politicas, color=PLOT_COLORS, 
+            edgecolor='black', alpha=0.8)
+            
     ax.set_xlabel('Utilidad', fontweight='bold')
     ax.set_ylabel('Frecuencia', fontweight='bold')
     ax.set_title('Distribución de Utilidad', fontweight='bold')
@@ -952,31 +952,11 @@ def crear_visualizaciones(
         ax.text(bar.get_x() + bar.get_width()/2., height + costos_std[i],
                 f'{val:.2f}', ha='center', va='bottom', fontweight='bold')
     
-    # 6. Frecuencia de uso de rutas
-    ax = axes[1, 2]
-    # Obtener nombres de rutas
-    rutas_nombres = [k.replace("freq_", "") for k in resultados_dict[politicas[0]].keys() 
-                     if k.startswith("freq_")]
+    # 6. Ocultar el último gráfico (Frecuencia de rutas eliminada)
+    axes[1, 2].axis('off')
     
-    if rutas_nombres:
-        width = 0.25
-        x = np.arange(len(rutas_nombres))
-        
-        for idx, (pol, color) in enumerate(zip(politicas, PLOT_COLORS)):
-            freqs = [resultados_dict[pol][f"freq_{ruta}"] * 100 for ruta in rutas_nombres]
-            offset = width * (idx - 1)
-            ax.bar(x + offset, freqs, width, label=pol, color=color, 
-                   alpha=0.7, edgecolor='black')
-        
-        ax.set_xlabel('Ruta', fontweight='bold')
-        ax.set_ylabel('Frecuencia de uso (%)', fontweight='bold')
-        ax.set_title('Frecuencia de Uso de Rutas', fontweight='bold')
-        ax.set_xticks(x)
-        ax.set_xticklabels(rutas_nombres, rotation=15, ha='right')
-        ax.legend()
-        ax.grid(True, alpha=0.3, axis='y')
-    
-    plt.tight_layout()
+    # Ajustar layout para evitar solapamiento
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95], h_pad=3.0, w_pad=2.0)
     
     if guardar:
         filename = f"resultados_{nombre_escenario.lower().replace(' ', '_')}.png"
