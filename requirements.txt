@@ -1,0 +1,5 @@
+numpy>=1.21.0,<2.0.0          # Numerical operations and array handling
+
+# Data visualization
+matplotlib>=3.5.0,<4.0.0      # Plotting and chart generation
+seaborn>=0.12.0,<1.0.0        # Statistical data visualization and styling
